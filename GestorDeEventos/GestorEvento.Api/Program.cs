@@ -1,4 +1,8 @@
 
+using GestorEvento.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
+
 namespace GestorEvento.Api
 {
     public class Program
@@ -14,7 +18,18 @@ namespace GestorEvento.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddDbContext<GestorDbcontext>(options =>
+             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+             );
+
+
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var dataContext = scope.ServiceProvider.GetRequiredService<GestorDbcontext>();
+                dataContext.Database.Migrate();
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

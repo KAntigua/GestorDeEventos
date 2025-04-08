@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace GestorEvento.Domain.Entities
 {
-    internal class Participante
+    public class Participante
     {
+        public int Id { get; set; }
+        public string Nombre { get; set; }
+        public string Correo { get; set; }
+        
+        public ICollection<EventoParticipante> EventoParticipantes { get; set; }
     }
 }

@@ -1,6 +1,10 @@
 
+using AutoMapper;
+using GestorEvento.Api.Servicios;
+using GestorEvento.Application.DTOs;
 using GestorEvento.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+
 
 
 namespace GestorEvento.Api
@@ -17,6 +21,11 @@ namespace GestorEvento.Api
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            var mapperConfig = Mappers.MapperConfiguration(); 
+            IMapper mapper = mapperConfig.CreateMapper();
+            builder.Services.AddSingleton(mapper);
+
+            builder.Services.AddTransient<IServicioEmail, ServicioEmail>();
 
             builder.Services.AddDbContext<GestorDbcontext>(options =>
              options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))

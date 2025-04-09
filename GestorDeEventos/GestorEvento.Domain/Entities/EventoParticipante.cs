@@ -9,6 +9,8 @@ namespace GestorEvento.Domain.Entities
     public class EventoParticipante
     {
         public int Id { get; set; }
+
+        public int EventoId { get; set; }
         public Evento Evento { get; set; }
 
         public int ParticipanteId { get; set; }

@@ -1,154 +1,83 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
 using GestorEvento.Application.DTOs;
-using AutoMapper;
-using GestorEvento.Domain.Entities;
-using GestorEvento.Infrastructure.Persistence;
+using GestorEvento.Application.Services;
 using Microsoft.AspNetCore.Mvc;
+
+
 namespace GestorEvento.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class UsuarioController : ControllerBase
     {
-        private readonly IMapper _mapper;
-        private readonly GestorDbcontext _context;
+        private readonly UsuarioService _usuarioService;
 
-        public UsuarioController(IMapper mapper, GestorDbcontext context)
+        public UsuarioController(UsuarioService usuarioService)
         {
-            _mapper = mapper;
-            _context = context;
+            _usuarioService = usuarioService;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateUsuario([FromBody] UsuarioDTO usuarioDTO)
         {
-            if (usuarioDTO == null)
-            {
-                return BadRequest("Los datos del usuario no pueden ser nulos.");
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-           
-            var usuarioExistente = await _context.Usuarios
-                                                  .FirstOrDefaultAsync(u => u.Correo == usuarioDTO.Correo);
-            if (usuarioExistente != null)
-            {
-                return Conflict("Ya existe un usuario con el mismo correo.");
-            }
-            var usuario = _mapper.Map<Usuario>(usuarioDTO);
+            var result = await _usuarioService.CreateAsync(usuarioDTO);
 
-            try
-            {
-                await _context.Usuarios.AddAsync(usuario);
-                await _context.SaveChangesAsync();
+            if (result == 0)
+                return StatusCode(500, "Ocurrió un error al crear el usuario.");
 
-                var usuarioCreadoDTO = _mapper.Map<UsuarioDTO>(usuario);
-                return CreatedAtAction(nameof(GetUsuarioById), new { id = usuario.Id }, usuarioCreadoDTO);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al crear el usuario: {ex.Message}");
-            }
+            return Ok(new { success = true, id = result });
         }
-
 
         [HttpGet]
         public async Task<IActionResult> GetAllUsuarios()
         {
-            try
-            {
-                var usuarios = await _context.Usuarios.ToListAsync();
+            var usuarios = await _usuarioService.GetAllAsync();
 
-                if (usuarios == null || usuarios.Count == 0)
-                {
-                    return NotFound("No se encontraron usuarios.");
-                }
+            if (usuarios == null || usuarios.Count == 0)
+                return NotFound("No se encontraron usuarios.");
 
-                var usuariosDTO = _mapper.Map<List<UsuarioDTO>>(usuarios);
-                return Ok(usuariosDTO);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al obtener los usuarios: {ex.Message}");
-            }
+            return Ok(usuarios);
         }
 
-        
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUsuarioById(int id)
         {
-            try
-            {
-                var usuario = await _context.Usuarios
-                                             .FirstOrDefaultAsync(u => u.Id == id);
+            var usuario = await _usuarioService.GetByIdAsync(id);
 
-                if (usuario == null)
-                {
-                    return NotFound($"No se encontró un usuario con el ID {id}.");
-                }
+            if (usuario == null)
+                return NotFound($"No se encontró un usuario con el ID {id}.");
 
-                var usuarioDTO = _mapper.Map<UsuarioDTO>(usuario);
-                return Ok(usuarioDTO);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al obtener el usuario: {ex.Message}");
-            }
+            return Ok(usuario);
         }
 
-       
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUsuario(int id, [FromBody] UsuarioDTO usuarioDTO)
         {
-            if (usuarioDTO == null)
-            {
-                return BadRequest("Los datos del usuario no pueden ser nulos.");
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var usuarioExistente = await _context.Usuarios.FindAsync(id);
-            if (usuarioExistente == null)
-            {
-                return NotFound($"No se encontró un usuario con el ID {id}.");
-            }
+            var updated = await _usuarioService.UpdateAsync(id, usuarioDTO);
 
-            try
-            {
-                usuarioExistente.Nombre = usuarioDTO.Nombre;
-                usuarioExistente.Correo = usuarioDTO.Correo;
-                usuarioExistente.Clave = usuarioDTO.Clave;
-                usuarioExistente.Rol = usuarioDTO.Rol;
+            if (!updated)
+                return NotFound($"No se pudo actualizar el usuario con ID {id}.");
 
-                await _context.SaveChangesAsync();
-
-                var usuarioActualizadoDTO = _mapper.Map<UsuarioDTO>(usuarioExistente);
-                return Ok(usuarioActualizadoDTO);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al actualizar el usuario: {ex.Message}");
-            }
+            return Ok(new { success = true });
         }
 
-      
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsuario(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null)
-            {
-                return NotFound($"No se encontró un usuario con el ID {id}.");
-            }
+            var deleted = await _usuarioService.DeleteAsync(id);
 
-            try
-            {
-                _context.Usuarios.Remove(usuario);
-                await _context.SaveChangesAsync();
+            if (!deleted)
+                return NotFound($"No se pudo eliminar el usuario con ID {id}.");
 
-                return Ok($"Usuario con ID {id} eliminado correctamente.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al eliminar el usuario: {ex.Message}");
-            }
+            return Ok(new { success = true });
         }
     }
+
 }

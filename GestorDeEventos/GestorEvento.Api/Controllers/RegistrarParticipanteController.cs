@@ -1,9 +1,8 @@
 ﻿using GestorEvento.Api.Servicios;
 using GestorEvento.Application.DTOs;
-using GestorEvento.Domain.Entities;
-using GestorEvento.Infrastructure.Persistence;
+using GestorEvento.Application.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace GestorEvento.Api.Controllers
 {
@@ -11,13 +10,15 @@ namespace GestorEvento.Api.Controllers
     [Route("api/[controller]")]
     public class RegistrarParticipanteController : ControllerBase
     {
-        private readonly GestorDbcontext context;
-        private readonly IServicioEmail servicioEmail;
+        private readonly RegistrarParticipanteService _registrarParticipanteService;
+        private readonly IServicioEmail _servicioEmail;
 
-        public RegistrarParticipanteController(GestorDbcontext context, IServicioEmail servicioEmail)
+        public RegistrarParticipanteController(
+            RegistrarParticipanteService registrarParticipanteService,
+            IServicioEmail servicioEmail)
         {
-            this.context = context;
-            this.servicioEmail = servicioEmail;
+            _registrarParticipanteService = registrarParticipanteService;
+            _servicioEmail = servicioEmail;
         }
 
         [HttpPost("registrar")]
@@ -26,45 +27,26 @@ namespace GestorEvento.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            
-            var participante = await context.Participantes
-                .FirstOrDefaultAsync(p => p.Correo == dto.Correo);
-
-            if (participante == null)
+            try
             {
-                participante = new Participante
-                {
-                    Nombre = dto.Nombre,
-                    Correo = dto.Correo
-                };
-                context.Participantes.Add(participante);
-                await context.SaveChangesAsync();
+                var idParticipante = await _registrarParticipanteService.CreateAsync(dto);
+
+                await _servicioEmail.EnviarEmail(
+                    dto.Correo,
+                    "Confirmación de Registro al Evento",
+                    $"Hola {dto.Nombre},\n\nTe has registrado exitosamente en el evento con ID {dto.EventoId}.\n\n¡Gracias por participar!"
+                );
+
+                return Ok($"Te has registrado exitosamente. ID del participante: {idParticipante}");
             }
-
-            var yaRegistrado = await context.EventoParticipantes
-                .AnyAsync(ep => ep.EventoId == dto.EventoId && ep.ParticipanteId == participante.Id);
-
-            if (yaRegistrado)
-                return BadRequest("Ya estás registrado en este evento");
-
-            var eventoParticipante = new EventoParticipante
+            catch (InvalidOperationException ex)
             {
-                EventoId = dto.EventoId,
-                ParticipanteId = participante.Id,
-                FechaRegistro = DateTime.Now
-            };
-
-            context.EventoParticipantes.Add(eventoParticipante);
-            await context.SaveChangesAsync();
-
-            await servicioEmail.EnviarEmail(
-            dto.Correo,
-            "Confirmación de Registro al Evento",
-            $"Hola {dto.Nombre},\n\nTe has registrado exitosamente en el evento con ID {dto.EventoId}.\n\n¡Gracias por participar!"
-            );
-
-
-            return Ok("Te has registrado exitosamente");
+                return BadRequest(ex.Message); 
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+            }
         }
     }
 }

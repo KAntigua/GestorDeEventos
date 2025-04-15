@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GestorEvento.Domain\GestorEvento.Domain.csproj" />
+    <ProjectReference Include="..\GestorEvento.Infrastructure\GestorEvento.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,9 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using GestorEvento.Application.DTOs;
-using AutoMapper;
-using GestorEvento.Domain.Entities;
-using GestorEvento.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Mvc;
+using GestorEvento.Application.Services;
+
 
 namespace GestorEvento.Api.Controllers
 {
@@ -11,32 +9,25 @@ namespace GestorEvento.Api.Controllers
     [ApiController]
     public class SalaController : ControllerBase
     {
-        private readonly IMapper _mapper;
-        private readonly GestorDbcontext _context;
+        private readonly SalaService _salaService;
 
-        public SalaController(IMapper mapper, GestorDbcontext context)
+        public SalaController(SalaService salaService)
         {
-            _mapper = mapper;
-            _context = context;
+            _salaService = salaService;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateSala([FromBody] SalaDTO salaDTO)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
             try
             {
-                var sala = _mapper.Map<Sala>(salaDTO);
+                var id = await _salaService.CreateAsync(salaDTO);
+                var createdSala = await _salaService.GetByIdAsync(id);
 
-                await _context.Set<Sala>().AddAsync(sala);
-                await _context.SaveChangesAsync();
-
-                var salaCreadaDTO = _mapper.Map<SalaDTO>(sala);
-                return CreatedAtAction(nameof(GetSalaById), new { id = sala.Id }, salaCreadaDTO);
+                return CreatedAtAction(nameof(GetSalaById), new { id = id }, createdSala);
             }
             catch (Exception ex)
             {
@@ -49,15 +40,12 @@ namespace GestorEvento.Api.Controllers
         {
             try
             {
-                var salas = await _context.Set<Sala>().ToListAsync();
+                var salas = await _salaService.GetAllAsync();
 
                 if (salas == null || !salas.Any())
-                {
                     return NotFound("No se encontraron salas.");
-                }
 
-                var salasDTO = _mapper.Map<List<SalaDTO>>(salas);
-                return Ok(salasDTO);
+                return Ok(salas);
             }
             catch (Exception ex)
             {
@@ -70,13 +58,11 @@ namespace GestorEvento.Api.Controllers
         {
             try
             {
-                var sala = await _context.Set<Sala>().FindAsync(id);
-
+                var sala = await _salaService.GetByIdAsync(id);
                 if (sala == null)
                     return NotFound($"No se encontró una sala con el ID {id}.");
 
-                var salaDTO = _mapper.Map<SalaDTO>(sala);
-                return Ok(salaDTO);
+                return Ok(sala);
             }
             catch (Exception ex)
             {
@@ -89,22 +75,26 @@ namespace GestorEvento.Api.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
-            }
-
-            var salaExistente = await _context.Set<Sala>().FindAsync(id);
-            if (salaExistente == null)
-            {
-                return NotFound($"No se encontró una sala con el ID {id}.");
+                var errores = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+                return BadRequest(new { mensaje = "Datos inválidos", errores });
             }
 
             try
             {
-                _mapper.Map(salaDTO, salaExistente);
-                await _context.SaveChangesAsync();
+                
+                var salaExistente = await _salaService.GetByIdAsync(id);
+                if (salaExistente == null)
+                    return NotFound($"No se encontró una sala con el ID {id}.");
 
-                var salaActualizadaDTO = _mapper.Map<SalaDTO>(salaExistente);
-                return Ok(salaActualizadaDTO);
+                
+                var updated = await _salaService.UpdateAsync(id, salaDTO);
+                if (!updated)
+                    return StatusCode(500, "Error al actualizar la sala.");
+
+                var updatedSala = await _salaService.GetByIdAsync(id);
+                return Ok(new { mensaje = "Sala actualizada exitosamente", sala = updatedSala });
             }
             catch (Exception ex)
             {
@@ -115,16 +105,11 @@ namespace GestorEvento.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSala(int id)
         {
-            var sala = await _context.Set<Sala>().FindAsync(id);
-            if (sala == null)
-            {
-                return NotFound($"No se encontró una sala con el ID {id}.");
-            }
-
             try
             {
-                _context.Set<Sala>().Remove(sala);
-                await _context.SaveChangesAsync();
+                var deleted = await _salaService.DeleteAsync(id);
+                if (!deleted)
+                    return NotFound($"No se encontró una sala con el ID {id}.");
 
                 return Ok($"Sala con ID {id} eliminada correctamente.");
             }
@@ -135,6 +120,3 @@ namespace GestorEvento.Api.Controllers
         }
     }
 }
-
-
-    

@@ -4,85 +4,78 @@ using AutoMapper;
 using GestorEvento.Domain.Entities;
 using GestorEvento.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using GestorEvento.Application.Services;
 
 namespace GestorEvento.Api.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-
+    [Route("api/[controller]")]
     public class EventoController : ControllerBase
     {
-        private readonly IMapper _mapper;
-        private readonly GestorDbcontext _context;
+        private readonly EventoService _eventoService;
 
-        public EventoController(IMapper mapper, GestorDbcontext context)
+        public EventoController(EventoService eventoService)
         {
-            _mapper = mapper;
-            _context = context;
+            _eventoService = eventoService;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateEvento([FromBody] EventoDTO eventoDTO)
         {
-            if (eventoDTO == null)
-                return BadRequest("Los datos del evento no pueden ser nulos.");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             try
             {
-                var evento = _mapper.Map<Evento>(eventoDTO);
+                var id = await _eventoService.CreateAsync(eventoDTO);
 
-                await _context.Eventos.AddAsync(evento);
-                await _context.SaveChangesAsync();
+                if (id == 0)
+                    return StatusCode(500, "Ocurrió un error al crear el evento.");
 
-                var eventoCreadoDTO = _mapper.Map<EventoDTO>(evento);
-                return CreatedAtAction(nameof(GetEventoById), new { id = evento.Id }, eventoCreadoDTO);
+                return Ok(new { success = true, message = "Evento creado exitosamente", id });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error al crear el evento: {ex.Message}");
+                return StatusCode(500, $"Error interno: {ex.Message}");
             }
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllEventos()
         {
-            try
-            {
-                var eventos = await _context.Eventos.ToListAsync();
-                var eventosDTO = _mapper.Map<List<EventoDTO>>(eventos);
-                return Ok(eventosDTO);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al obtener los eventos: {ex.Message}");
-            }
+            var eventos = await _eventoService.GetAllAsync();
+
+            if (eventos == null || eventos.Count == 0)
+                return NotFound("No se encontraron eventos registrados.");
+
+            return Ok(eventos);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEventoById(int id)
         {
-            var evento = await _context.Eventos.FindAsync(id);
-            if (evento == null)
-                return NotFound($"No se encontró un evento con el ID {id}.");
+            var evento = await _eventoService.GetByIdAsync(id);
 
-            var eventoDTO = _mapper.Map<EventoDTO>(evento);
-            return Ok(eventoDTO);
+            if (evento == null)
+                return NotFound($"No se encontró el evento con ID {id}.");
+
+            return Ok(evento);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEvento(int id, [FromBody] EventoDTO eventoDTO)
         {
-            var eventoExistente = await _context.Eventos.FindAsync(id);
-            if (eventoExistente == null)
-                return NotFound($"No se encontró un evento con el ID {id}.");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             try
             {
-                _mapper.Map(eventoDTO, eventoExistente);
-                await _context.SaveChangesAsync();
+                var updated = await _eventoService.UpdateAsync(id, eventoDTO);
 
-                var eventoActualizadoDTO = _mapper.Map<EventoDTO>(eventoExistente);
-                return Ok(eventoActualizadoDTO);
+                if (!updated)
+                    return NotFound($"No se pudo actualizar el evento con ID {id}.");
+
+                return Ok(new { success = true, message = "Evento actualizado correctamente" });
             }
             catch (Exception ex)
             {
@@ -93,16 +86,21 @@ namespace GestorEvento.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEvento(int id)
         {
-            var evento = await _context.Eventos.FindAsync(id);
-            if (evento == null)
-                return NotFound($"No se encontró un evento con el ID {id}.");
+            try
+            {
+                var deleted = await _eventoService.DeleteAsync(id);
 
-            _context.Eventos.Remove(evento);
-            await _context.SaveChangesAsync();
+                if (!deleted)
+                    return NotFound($"No se pudo eliminar el evento con ID {id}.");
 
-            return Ok($"Evento con ID {id} eliminado correctamente.");
+                return Ok(new { success = true, message = "Evento eliminado correctamente" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al eliminar el evento: {ex.Message}");
+            }
         }
     }
+
 }
 
- 

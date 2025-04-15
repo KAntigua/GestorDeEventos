@@ -4,141 +4,116 @@ using AutoMapper;
 using GestorEvento.Domain.Entities;
 using GestorEvento.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using GestorEvento.Application.Services;
 
 
 namespace GestorEvento.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
-    public class EventoParticipanteController : Controller
+    public class EventoParticipanteController : ControllerBase
     {
-        private readonly IMapper _mapper;
-        private readonly GestorDbcontext _context;
+        private readonly EventoParticipanteService _eventoParticipanteService;
 
-        public EventoParticipanteController(IMapper mapper, GestorDbcontext context)
+        public EventoParticipanteController(EventoParticipanteService eventoParticipanteService)
         {
-            _mapper = mapper;
-            _context = context;
+            _eventoParticipanteService = eventoParticipanteService;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateEventoParticipante([FromBody] EventoParticipanteDTO eventoParticipanteDTO)
         {
-            if (eventoParticipanteDTO == null)
-                return BadRequest("Los datos del evento-participante no pueden ser nulos.");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             try
             {
-                
-                var evento = await _context.Eventos.FindAsync(eventoParticipanteDTO.EventoId);
-                if (evento == null)
-                {
-                    return NotFound($"El evento con ID {eventoParticipanteDTO.EventoId} no existe.");
-                }
+                var result = await _eventoParticipanteService.CreateAsync(eventoParticipanteDTO);
 
-              
-                var participante = await _context.Participantes.FindAsync(eventoParticipanteDTO.ParticipanteId);
-                if (participante == null)
-                {
-                    return NotFound($"El participante con ID {eventoParticipanteDTO.ParticipanteId} no existe.");
-                }
+                if (result == 0)
+                    return StatusCode(500, new { success = false, message = "Ocurrió un error al crear la relación Evento-Participante." });
 
-              
-                var eventoParticipante = _mapper.Map<EventoParticipante>(eventoParticipanteDTO);
-
-                
-                await _context.EventoParticipantes.AddAsync(eventoParticipante);
-                await _context.SaveChangesAsync();
-
-               
-                var eventoParticipanteCreadoDTO = _mapper.Map<EventoParticipanteDTO>(eventoParticipante);
-
-                
-                return CreatedAtAction(nameof(GetEventoParticipanteById), new { id = eventoParticipante.Id }, eventoParticipanteCreadoDTO);
+                return Ok(new { success = true, message = "Relación creada exitosamente.", id = result });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error al crear la relación evento-participante: {ex.Message}");
+                return StatusCode(500, new { success = false, message = $"Error interno: {ex.Message}" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllEventoParticipantes()
+        {
+            try
+            {
+                var relaciones = await _eventoParticipanteService.GetAllAsync();
+
+                if (relaciones == null || relaciones.Count == 0)
+                    return NotFound(new { success = false, message = "No se encontraron relaciones de evento y participante." });
+
+                return Ok(new { success = true, data = relaciones });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Error al obtener datos: {ex.Message}" });
             }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEventoParticipanteById(int id)
         {
-            var eventoParticipante = await _context.EventoParticipantes
-                .Include(ep => ep.Evento)   
-                .Include(ep => ep.Participante) 
-                .FirstOrDefaultAsync(ep => ep.Id == id);
+            try
+            {
+                var relacion = await _eventoParticipanteService.GetByIdAsync(id);
 
-            if (eventoParticipante == null)
-                return NotFound($"La relación con ID {id} no existe.");
+                if (relacion == null)
+                    return NotFound(new { success = false, message = $"No se encontró la relación con ID {id}." });
 
-            var eventoParticipanteDTO = _mapper.Map<EventoParticipanteDTO>(eventoParticipante);
-            return Ok(eventoParticipanteDTO);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetEventoParticipantes()
-        {
-            var eventoParticipantes = await _context.EventoParticipantes
-                .Include(ep => ep.Evento) 
-                .Include(ep => ep.Participante)  
-                .ToListAsync();
-
-            if (eventoParticipantes == null || eventoParticipantes.Count == 0)
-                return NotFound("No hay relaciones de evento-participante.");
-
-            var eventoParticipantesDTO = _mapper.Map<List<EventoParticipanteDTO>>(eventoParticipantes);
-            return Ok(eventoParticipantesDTO);
+                return Ok(new { success = true, data = relacion });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Error al obtener la relación: {ex.Message}" });
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEventoParticipante(int id, [FromBody] EventoParticipanteDTO eventoParticipanteDTO)
         {
-            if (eventoParticipanteDTO == null)
-                return BadRequest("Los datos del evento-participante no pueden ser nulos.");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var eventoParticipante = await _context.EventoParticipantes
-                .FirstOrDefaultAsync(ep => ep.Id == id);
+            try
+            {
+                var updated = await _eventoParticipanteService.UpdateAsync(id, eventoParticipanteDTO);
 
-            if (eventoParticipante == null)
-                return NotFound($"La relación con ID {id} no existe.");
+                if (!updated)
+                    return NotFound(new { success = false, message = $"No se pudo actualizar la relación con ID {id}." });
 
-            
-            eventoParticipante.FechaRegistro = eventoParticipanteDTO.FechaRegistro;
-
-         
-            _context.EventoParticipantes.Update(eventoParticipante);
-            await _context.SaveChangesAsync();
-
-            var eventoParticipanteActualizadoDTO = _mapper.Map<EventoParticipanteDTO>(eventoParticipante);
-            return Ok(eventoParticipanteActualizadoDTO);
+                return Ok(new { success = true, message = "Relación actualizada correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Error al actualizar: {ex.Message}" });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEventoParticipante(int id)
         {
-            var eventoParticipante = await _context.EventoParticipantes
-                .FirstOrDefaultAsync(ep => ep.Id == id);
-
-            if (eventoParticipante == null)
-            {
-                return NotFound($"No se encontró la relación EventoParticipante con el ID {id}.");
-            }
-
             try
             {
-                _context.EventoParticipantes.Remove(eventoParticipante);
-                await _context.SaveChangesAsync();
+                var deleted = await _eventoParticipanteService.DeleteAsync(id);
 
-                return Ok($"Relación EventoParticipante con ID {id} eliminada correctamente.");
+                if (!deleted)
+                    return NotFound(new { success = false, message = $"No se pudo eliminar la relación con ID {id}." });
+
+                return Ok(new { success = true, message = "Relación eliminada correctamente." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error al eliminar la relación: {ex.Message}");
+                return StatusCode(500, new { success = false, message = $"Error al eliminar: {ex.Message}" });
             }
         }
-
     }
 }

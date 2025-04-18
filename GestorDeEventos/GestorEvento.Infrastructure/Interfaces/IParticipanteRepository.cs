@@ -14,5 +14,9 @@ namespace GestorEvento.Infrastructure.Interfaces
         Task AddParticipanteAsync(Participante participante);
         Task<bool> UpdateParticipanteAsync(Participante participante);
         Task<bool> DeleteParticipanteAsync(int id);
+        Task<Participante?> GetParticipanteByCorreoAsync(string correo);
+        Task AgregarEventoParticipanteAsync(EventoParticipante entity);
+
+        Task<bool> ExisteEventoParticipanteAsync(int participanteId, int eventoId);
     }
 }

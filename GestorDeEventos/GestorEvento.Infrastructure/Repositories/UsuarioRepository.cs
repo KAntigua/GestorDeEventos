@@ -22,17 +22,21 @@ namespace GestorEvento.Infrastructure.Repositories
 
         public async Task<int> AddUsuarioAsync(Usuario usuario)
         {
-            return await AddAsync(usuario);
+            return await AddAsync(usuario); 
         }
 
         public async Task<bool> UpdateUsuarioAsync(Usuario usuario)
         {
-            return await UpdateAsync(usuario);
+            return await UpdateAsync(usuario); 
         }
 
         public async Task<bool> DeleteUsuarioAsync(int id)
         {
             return await DeleteAsync(id);
+        }
+        public async Task<Usuario> GetByCorreoAsync(string correo)
+        {
+            return await Context.Usuarios.FirstOrDefaultAsync(u => u.Correo == correo);
         }
     }
 }

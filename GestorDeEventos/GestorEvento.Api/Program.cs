@@ -2,6 +2,7 @@
 using AutoMapper;
 using GestorEvento.Api.Servicios;
 using GestorEvento.Application.DTOs;
+using GestorEvento.Application.Interfaces;
 using GestorEvento.Application.Services;
 using GestorEvento.Infrastructure.Core;
 using GestorEvento.Infrastructure.Interfaces;
@@ -28,21 +29,22 @@ namespace GestorEvento.Api
             var mapperConfig = Mappers.MapperConfiguration(); 
             IMapper mapper = mapperConfig.CreateMapper();
             builder.Services.AddSingleton(mapper);
-            builder.Services.AddScoped<UnitOfWork>();
 
+            builder.Services.AddScoped<UnitOfWork>();
 
             builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             builder.Services.AddScoped<UsuarioService>();
             builder.Services.AddScoped<ISalaRepository, SalaRepository>();
             builder.Services.AddScoped<SalaService>();
-            builder.Services.AddScoped<IRegistrarParticipanteRepository, RegistrarParticipanteRepository>();
-            builder.Services.AddScoped<RegistrarParticipanteService>();
+           
             builder.Services.AddScoped<IParticipanteRepository, ParticipanteRepository>();
             builder.Services.AddScoped<ParticipanteService>();
-            builder.Services.AddScoped<IEventoParticipanteRepository, EventoParticipanteRepository>();
-            builder.Services.AddScoped<EventoParticipanteService>();
+           
             builder.Services.AddScoped<IEventoRepository, EventoRepository>();
             builder.Services.AddScoped<EventoService>();
+
+            builder.Services.AddScoped<IRegistrarParticipanteService, RegistrarParticipanteService>();
+
 
             builder.Services.AddTransient<IServicioEmail, ServicioEmail>();
 

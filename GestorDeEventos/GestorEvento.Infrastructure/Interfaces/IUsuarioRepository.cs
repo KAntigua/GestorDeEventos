@@ -10,6 +10,7 @@ namespace GestorEvento.Infrastructure.Interfaces
     public interface IUsuarioRepository
     {
         Task<Usuario> GetByIdAsync(int id);
+        Task<Usuario> GetByCorreoAsync(string correo);  
         Task<List<Usuario>> GetAllAsync();
         Task<int> AddUsuarioAsync(Usuario usuario);
         Task<bool> UpdateUsuarioAsync(Usuario usuario);

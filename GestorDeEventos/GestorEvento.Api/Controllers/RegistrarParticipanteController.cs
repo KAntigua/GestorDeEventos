@@ -1,8 +1,7 @@
 ﻿using GestorEvento.Api.Servicios;
 using GestorEvento.Application.DTOs;
-using GestorEvento.Application.Services;
+using GestorEvento.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-
 
 namespace GestorEvento.Api.Controllers
 {
@@ -10,11 +9,11 @@ namespace GestorEvento.Api.Controllers
     [Route("api/[controller]")]
     public class RegistrarParticipanteController : ControllerBase
     {
-        private readonly RegistrarParticipanteService _registrarParticipanteService;
+        private readonly IRegistrarParticipanteService _registrarParticipanteService;
         private readonly IServicioEmail _servicioEmail;
 
         public RegistrarParticipanteController(
-            RegistrarParticipanteService registrarParticipanteService,
+            IRegistrarParticipanteService registrarParticipanteService,
             IServicioEmail servicioEmail)
         {
             _registrarParticipanteService = registrarParticipanteService;
@@ -29,7 +28,7 @@ namespace GestorEvento.Api.Controllers
 
             try
             {
-                var idParticipante = await _registrarParticipanteService.CreateAsync(dto);
+                var idParticipante = await _registrarParticipanteService.RegistrarParticipanteAsync(dto);
 
                 await _servicioEmail.EnviarEmail(
                     dto.Correo,
@@ -37,15 +36,19 @@ namespace GestorEvento.Api.Controllers
                     $"Hola {dto.Nombre},\n\nTe has registrado exitosamente en el evento con ID {dto.EventoId}.\n\n¡Gracias por participar!"
                 );
 
-                return Ok($"Te has registrado exitosamente. ID del participante: {idParticipante}");
+                return Ok(new
+                {
+                    mensaje = "Te has registrado exitosamente.",
+                    participanteId = idParticipante
+                });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message); 
+                return BadRequest(new { error = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+                return StatusCode(500, new { error = "Error interno del servidor", detalle = ex.Message });
             }
         }
     }

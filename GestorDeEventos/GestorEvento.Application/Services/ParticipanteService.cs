@@ -87,6 +87,44 @@ namespace GestorEvento.Application.Services
 
             return result;
         }
+
+        public async Task RegistrarParticipanteAsync(RegistrarParticipanteDTO dto)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            var participanteExistente = await _participanteRepository
+                .GetParticipanteByCorreoAsync(dto.Correo);
+
+            Participante participante;
+
+            if (participanteExistente == null)
+            {
+                participante = new Participante
+                {
+                    Nombre = dto.Nombre,
+                    Correo = dto.Correo
+                };
+
+                await _participanteRepository.AddParticipanteAsync(participante);
+                await _unitOfWork.CompleteAsync(); 
+            }
+            else
+            {
+                participante = participanteExistente;
+            }
+
+            var eventoParticipante = new EventoParticipante
+            {
+                ParticipanteId = participante.Id,
+                EventoId = dto.EventoId,
+                FechaRegistro = DateTime.Now
+            };
+
+            await _participanteRepository.AgregarEventoParticipanteAsync(eventoParticipante);
+
+            await _unitOfWork.CompleteAsync();
+            await _unitOfWork.CommitTransactionAsync();
+        }
     }
 }
 

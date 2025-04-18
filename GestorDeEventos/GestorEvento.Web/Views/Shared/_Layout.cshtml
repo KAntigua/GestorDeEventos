@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -25,6 +28,32 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                        @{
+                            var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UsuarioRol");
+                        }
+
+                        <ul class="navbar-nav">
+                            @if (userRole == "Administrador")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Evento" asp-action="Index">Eventos</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Sala" asp-action="Index">Salas</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Participante" asp-action="Index">Participantes</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="RegistrarParticipante" asp-action="Registrar">Registrar Participantes</a>
+                                </li>
+                            }
+                            
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Usuario" asp-action="Profile">Mi Perfil</a>
+                            </li>
+                        </ul>
+                       
                     </ul>
                 </div>
             </div>

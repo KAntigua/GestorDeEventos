@@ -1,0 +1,43 @@
+﻿@model GestorEvento.Web.Models.RegistrarParticipanteViewModel
+
+@{
+    ViewData["Title"] = "Registro de Participante";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<form asp-action="Registrar" method="post">
+    @Html.AntiForgeryToken()
+
+  
+    <div class="form-group">
+        <label asp-for="EventoId" class="control-label"></label>
+        <input asp-for="EventoId" class="form-control" />
+        <span asp-validation-for="EventoId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Nombre" class="control-label"></label>
+        <input asp-for="Nombre" class="form-control" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Correo" class="control-label"></label>
+        <input asp-for="Correo" class="form-control" />
+        <span asp-validation-for="Correo" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Registrarse</button>
+</form>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

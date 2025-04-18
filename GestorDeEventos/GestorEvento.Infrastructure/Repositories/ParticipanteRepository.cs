@@ -77,5 +77,22 @@ namespace GestorEvento.Infrastructure.Repositories
 
             return true; 
         }
+
+        public async Task<Participante?> GetParticipanteByCorreoAsync(string correo)
+        {
+            return await Context.Participantes
+                .FirstOrDefaultAsync(p => p.Correo == correo);
+        }
+
+        public async Task AgregarEventoParticipanteAsync(EventoParticipante entity)
+        {
+            Context.EventoParticipantes.Add(entity);
+        }
+
+        public async Task<bool> ExisteEventoParticipanteAsync(int participanteId, int eventoId)
+        {
+            return await Context.EventoParticipantes
+                .AnyAsync(ep => ep.ParticipanteId == participanteId && ep.EventoId == eventoId);
+        }
     }
 }

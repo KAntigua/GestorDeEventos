@@ -35,6 +35,7 @@ namespace GestorEvento.Api.Servicios
             var mensaje = new MailMessage(emailEmisor!, emailReceptor, tema, cuerpo);
             await smtpCliente.SendMailAsync(mensaje);
 
+
         }
     }
 }

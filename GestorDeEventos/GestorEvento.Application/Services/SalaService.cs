@@ -3,6 +3,7 @@ using GestorEvento.Domain.Entities;
 using GestorEvento.Infrastructure.Core;
 using GestorEvento.Infrastructure.Interfaces;
 using GestorEvento.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace GestorEvento.Application.Services
@@ -63,7 +64,7 @@ namespace GestorEvento.Application.Services
 
         public async Task<bool> UpdateAsync(int id, SalaDTO model)
         {
-            var entity = new Sala
+            var sala = new Sala
             {
                 Id = id,
                 Nombre = model.Nombre,
@@ -72,9 +73,16 @@ namespace GestorEvento.Application.Services
             };
 
             await _unitOfWork.BeginTransactionAsync();
-            var result = await _salaRepository.UpdateSalaAsync(entity);
-            await _unitOfWork.CompleteAsync();
-            await _unitOfWork.CommitTransactionAsync();
+            var result = await _salaRepository.UpdateSalaAsync(sala);
+            if (result)
+            {
+                await _unitOfWork.CompleteAsync();
+                await _unitOfWork.CommitTransactionAsync();
+            }
+            else
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+            }
 
             return result;
         }

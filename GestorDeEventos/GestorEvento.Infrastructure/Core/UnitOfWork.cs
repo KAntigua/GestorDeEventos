@@ -1,4 +1,5 @@
-﻿using GestorEvento.Infrastructure.Persistence;
+﻿using GestorEvento.Infrastructure.Interfaces;
+using GestorEvento.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace GestorEvento.Infrastructure.Core
 {
-    public class UnitOfWork
+    public class UnitOfWork : IUnitOfWork
     {
         private readonly GestorDbcontext _context;
         private IDbContextTransaction _transaction;
@@ -38,6 +39,11 @@ namespace GestorEvento.Infrastructure.Core
         public async Task CompleteAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        public IDbContextTransaction GetCurrentTransaction()
+        {
+            return _transaction;
         }
     }
 }

@@ -1,0 +1,65 @@
+﻿@model GestorEvento.Web.Models.EventoViewModel
+
+<div class="card shadow mt-4 text-primary">
+    <div class="card-header text-center bg-primary text-white">
+        <h5 class="mb-0">Detalles del Evento</h5>
+    </div>
+
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3 text-end text-dark">
+                @Html.DisplayNameFor(model => model.Nombre)
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Nombre)
+            </dd>
+
+            <dt class="col-sm-3 text-end text-dark">
+                @Html.DisplayNameFor(model => model.Descripcion)
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Descripcion)
+            </dd>
+
+            <dt class="col-sm-3 text-end text-dark">
+                @Html.DisplayNameFor(model => model.FechaInicio)
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.FechaInicio)
+            </dd>
+
+            <dt class="col-sm-3 text-end text-dark">
+                @Html.DisplayNameFor(model => model.FechaFin)
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.FechaFin)
+            </dd>
+
+            <dt class="col-sm-3 text-end text-dark">
+                @Html.DisplayNameFor(model => model.HoraInicio)
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.HoraInicio)
+            </dd>
+
+            <dt class="col-sm-3 text-end text-dark">
+                @Html.DisplayNameFor(model => model.HoraFin)
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.HoraFin)
+            </dd>
+
+            <dt class="col-sm-3 text-end text-dark">
+                @Html.DisplayNameFor(model => model.SalaId)
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.SalaId)
+            </dd>
+        </dl>
+    </div>
+
+    <div class="card-footer text-center">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-warning btn-sm">Editar</a>
+        <a asp-action="Index" class="btn btn-outline-success btn-sm">Volver a la lista</a>
+    </div>
+</div>

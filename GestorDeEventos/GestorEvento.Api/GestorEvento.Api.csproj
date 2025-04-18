@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="10.0.0" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.3">
       <PrivateAssets>all</PrivateAssets>
@@ -19,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GestorEvento.Application\GestorEvento.Application.csproj" />
+    <ProjectReference Include="..\GestorEvento.Domain\GestorEvento.Domain.csproj" />
     <ProjectReference Include="..\GestorEvento.Infrastructure\GestorEvento.Infrastructure.csproj" />
   </ItemGroup>
 

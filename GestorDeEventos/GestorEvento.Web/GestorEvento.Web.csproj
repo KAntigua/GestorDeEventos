@@ -4,10 +4,20 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>a3a42332-18da-46f5-92a4-501bbb00b7f9</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GestorEvento.Api\GestorEvento.Api.csproj" />
+    <ProjectReference Include="..\GestorEvento.Application\GestorEvento.Application.csproj" />
+    <ProjectReference Include="..\GestorEvento.Domain\GestorEvento.Domain.csproj" />
+    <ProjectReference Include="..\GestorEvento.Infrastructure\GestorEvento.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

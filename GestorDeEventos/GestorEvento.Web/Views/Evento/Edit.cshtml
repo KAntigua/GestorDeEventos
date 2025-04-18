@@ -1,0 +1,63 @@
+﻿@model GestorEvento.Web.Models.EventoViewModel
+
+<div class="card shadow mt-4 text-primary">
+    <div class="card-header text-center bg-primary text-white">
+        <h5 class="mb-0">Editar Evento</h5>
+    </div>
+
+    <div class="card-body">
+        <form asp-action="Edit" class="row g-3">
+
+            <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
+
+            <input type="hidden" asp-for="Id" />
+
+            <div class="col-md-6">
+                <label asp-for="Nombre" class="form-label">Nombre del Evento</label>
+                <input asp-for="Nombre" class="form-control" />
+                <span asp-validation-for="Nombre" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Descripcion" class="form-label">Descripción</label>
+                <textarea asp-for="Descripcion" class="form-control" rows="2"></textarea>
+                <span asp-validation-for="Descripcion" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="FechaInicio" class="form-label">Fecha de Inicio</label>
+                <input asp-for="FechaInicio" type="date" class="form-control" />
+                <span asp-validation-for="FechaInicio" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="FechaFin" class="form-label">Fecha de Fin</label>
+                <input asp-for="FechaFin" type="date" class="form-control" />
+                <span asp-validation-for="FechaFin" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="HoraInicio" class="form-label">Hora de Inicio</label>
+                <input asp-for="HoraInicio" type="time" class="form-control" />
+                <span asp-validation-for="HoraInicio" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="HoraFin" class="form-label">Hora de Fin</label>
+                <input asp-for="HoraFin" type="time" class="form-control" />
+                <span asp-validation-for="HoraFin" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="SalaId" class="form-label">Sala ID</label>
+                <input asp-for="SalaId" class="form-control" />
+                <span asp-validation-for="SalaId" class="text-danger"></span>
+            </div>
+
+            <div class="col-12 text-center mt-3">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <a asp-action="Index" class="btn btn-secondary">Volver a la lista</a>
+            </div>
+        </form>
+    </div>
+</div>

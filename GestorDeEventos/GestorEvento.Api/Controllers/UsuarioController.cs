@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GestorEvento.Api.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-
+    [Route("api/[controller]")]
     public class UsuarioController : ControllerBase
     {
         private readonly UsuarioService _usuarioService;
@@ -18,66 +17,60 @@ namespace GestorEvento.Api.Controllers
             _usuarioService = usuarioService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateUsuario([FromBody] UsuarioDTO usuarioDTO)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var result = await _usuarioService.CreateAsync(usuarioDTO);
-
-            if (result == 0)
-                return StatusCode(500, "Ocurrió un error al crear el usuario.");
-
-            return Ok(new { success = true, id = result });
-        }
-
         [HttpGet]
-        public async Task<IActionResult> GetAllUsuarios()
+        public async Task<IActionResult> GetAll()
         {
             var usuarios = await _usuarioService.GetAllAsync();
-
-            if (usuarios == null || usuarios.Count == 0)
-                return NotFound("No se encontraron usuarios.");
-
             return Ok(usuarios);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUsuarioById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
             var usuario = await _usuarioService.GetByIdAsync(id);
-
             if (usuario == null)
-                return NotFound($"No se encontró un usuario con el ID {id}.");
-
+                return NotFound();
             return Ok(usuario);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUsuario(int id, [FromBody] UsuarioDTO usuarioDTO)
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] UsuarioDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var updated = await _usuarioService.UpdateAsync(id, usuarioDTO);
+            var id = await _usuarioService.CreateAsync(dto);
+            return Ok(new { success = true, id });
+        }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UsuarioDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var updated = await _usuarioService.UpdateAsync(id, dto);
             if (!updated)
-                return NotFound($"No se pudo actualizar el usuario con ID {id}.");
-
+                return NotFound();
             return Ok(new { success = true });
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUsuario(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _usuarioService.DeleteAsync(id);
-
             if (!deleted)
-                return NotFound($"No se pudo eliminar el usuario con ID {id}.");
-
+                return NotFound();
             return Ok(new { success = true });
         }
-    }
 
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] UsuarioLoginDTO loginDto)
+        {
+            var usuario = await _usuarioService.AuthenticateAsync(loginDto.Correo, loginDto.Clave);
+            if (usuario == null)
+                return Unauthorized("Correo o clave incorrectos");
+            return Ok(usuario);
+        }
+    }
 }

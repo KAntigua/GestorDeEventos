@@ -1,8 +1,9 @@
-﻿using GestorEvento.Application.DTOs;
+﻿using BCrypt.Net;
+using GestorEvento.Application.DTOs;
 using GestorEvento.Domain.Entities;
 using GestorEvento.Infrastructure.Core;
 using GestorEvento.Infrastructure.Interfaces;
-using GestorEvento.Infrastructure.Repositories;
+
 
 
 namespace GestorEvento.Application.Services
@@ -21,30 +22,38 @@ namespace GestorEvento.Application.Services
         public async Task<List<UsuarioDTO>> GetAllAsync()
         {
             var usuarios = await _usuarioRepository.GetAllAsync();
-            return usuarios.Select(u => new UsuarioDTO
+            var usuariosDTO = new List<UsuarioDTO>();
+
+            foreach (var usuario in usuarios)
             {
-                Id = u.Id,
-                Nombre = u.Nombre,
-                Correo = u.Correo,
-                Clave = u.Clave,
-                Rol = u.Rol
-            }).ToList();
+                usuariosDTO.Add(new UsuarioDTO
+                {
+                    Id = usuario.Id,
+                    Nombre = usuario.Nombre,
+                    Correo = usuario.Correo,
+                    Rol = usuario.Rol
+                });
+            }
+
+            return usuariosDTO;
         }
 
+        
         public async Task<UsuarioDTO> GetByIdAsync(int id)
         {
-            var u = await _usuarioRepository.GetByIdAsync(id);
-            if (u == null) return null;
+            var usuario = await _usuarioRepository.GetByIdAsync(id);
+
+            if (usuario == null) return null;
 
             return new UsuarioDTO
             {
-                Id = u.Id,
-                Nombre = u.Nombre,
-                Correo = u.Correo,
-                Clave = u.Clave,
-                Rol = u.Rol
+                Id = usuario.Id,
+                Nombre = usuario.Nombre,
+                Correo = usuario.Correo,
+                Rol = usuario.Rol
             };
         }
+
 
         public async Task<int> CreateAsync(UsuarioDTO model)
         {
@@ -52,7 +61,7 @@ namespace GestorEvento.Application.Services
             {
                 Nombre = model.Nombre,
                 Correo = model.Correo,
-                Clave = model.Clave,
+                Clave = BCrypt.Net.BCrypt.HashPassword(model.Clave), 
                 Rol = model.Rol
             };
 
@@ -64,33 +73,50 @@ namespace GestorEvento.Application.Services
             return id;
         }
 
-        public async Task<bool> UpdateAsync(int id, UsuarioDTO model)
+
+        public async Task<bool> UpdateAsync(int id, UsuarioDTO usuarioDTO)
         {
-            var entity = new Usuario
+            var usuario = new Usuario
             {
                 Id = id,
-                Nombre = model.Nombre,
-                Correo = model.Correo,
-                Clave = model.Clave,
-                Rol = model.Rol
+                Nombre = usuarioDTO.Nombre,
+                Correo = usuarioDTO.Correo,
+                Clave = usuarioDTO.Clave,  
+                Rol = usuarioDTO.Rol
             };
 
-            await _unitOfWork.BeginTransactionAsync();
-            var result = await _usuarioRepository.UpdateUsuarioAsync(entity);
-            await _unitOfWork.CompleteAsync();
-            await _unitOfWork.CommitTransactionAsync();
-
-            return result;
+            return await _usuarioRepository.UpdateUsuarioAsync(usuario);
         }
 
+       
         public async Task<bool> DeleteAsync(int id)
         {
-            await _unitOfWork.BeginTransactionAsync();
-            var result = await _usuarioRepository.DeleteUsuarioAsync(id);
-            await _unitOfWork.CompleteAsync();
-            await _unitOfWork.CommitTransactionAsync();
+            return await _usuarioRepository.DeleteUsuarioAsync(id);
+        }
 
-            return result;
+       
+        public async Task<UsuarioDTO> AuthenticateAsync(string correo, string clave)
+        {
+            var usuario = await _usuarioRepository.GetByCorreoAsync(correo);
+
+            if (usuario == null)
+                return null;
+
+            
+            if (!BCrypt.Net.BCrypt.Verify(clave, usuario.Clave))
+                return null;
+
+            return new UsuarioDTO
+            {
+                Id = usuario.Id,
+                Nombre = usuario.Nombre,
+                Correo = usuario.Correo,
+                Rol = usuario.Rol
+            };
         }
     }
+
+
+
 }
+

@@ -27,7 +27,19 @@ namespace GestorEvento.Infrastructure.Repositories
 
         public async Task<bool> UpdateSalaAsync(Sala sala)
         {
-            return await UpdateAsync(sala);
+            var existing = await Context.Salas.FindAsync(sala.Id);
+            if (existing == null)
+                return false;
+
+           
+            existing.Nombre = sala.Nombre;
+            existing.Capacidad = sala.Capacidad;
+            existing.Precio = sala.Precio;
+
+            
+            await Context.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<bool> DeleteSalaAsync(int id)

@@ -1,0 +1,31 @@
+﻿@model IEnumerable<SalaViewModel>
+
+<div class="container mt-5">
+    <h3 class="text-center mb-4">Salas Disponibles</h3>
+
+    @if (!Model.Any())
+    {
+        <p class="text-center">No hay salas disponibles en este momento.</p>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var sala in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card">                        
+                        <div class="card-body">
+                            <h5 class="card-title">@sala.Nombre</h5>
+                            <p class="card-text">@sala.Precio</p>
+                            <p class="card-text"><strong>Capacidad:</strong> @sala.Capacidad personas</p>
+                            <a asp-controller="Evento" asp-action="Create" asp-route-salaId="@sala.Id" class="btn btn-outline-success btn-sm">
+                                Crear Evento en esta Sala
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+    }
+</div>

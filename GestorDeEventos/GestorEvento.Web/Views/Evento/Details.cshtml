@@ -1,5 +1,17 @@
 ﻿@model GestorEvento.Web.Models.EventoViewModel
 
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UsuarioRol");
+}
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success text-center mt-3">
+        @TempData["Mensaje"]
+    </div>
+}
+
 <div class="card shadow mt-4 text-primary">
     <div class="card-header text-center bg-primary text-white">
         <h5 class="mb-0">Detalles del Evento</h5>
@@ -55,11 +67,24 @@
             <dd class="col-sm-9">
                 @Html.DisplayFor(model => model.SalaId)
             </dd>
+            <dt class="col-sm-3 text-end text-dark">
+                ID del Evento
+            </dt>
+            <dd class="col-sm-9">
+                @Model.Id
+            </dd>
         </dl>
     </div>
 
     <div class="card-footer text-center">
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-warning btn-sm">Editar</a>
-        <a asp-action="Index" class="btn btn-outline-success btn-sm">Volver a la lista</a>
+        @if (userRole == "Administrador")
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-warning btn-sm">Editar</a>
+            <a asp-action="Index" class="btn btn-outline-success btn-sm">Volver a la lista</a>
+        }
+        else
+        {
+            <a asp-controller="Sala" asp-action="Disponibles" class="btn btn-outline-primary btn-sm">Volver a Salas</a>
+        }
     </div>
 </div>

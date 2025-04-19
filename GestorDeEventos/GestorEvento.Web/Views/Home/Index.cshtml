@@ -1,8 +1,54 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "Inicio";
+    var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UsuarioRol");
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (userRole == "Administrador")
+{
+    <div class="row g-4 mt-4">
+        @* Sala *@
+        <div class="col-md-4">
+            <div class="card border-primary shadow rounded-2xl h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">Salas</h5>
+                    <p class="card-text text-muted">Administre las salas disponibles para los eventos.</p>
+                    <a asp-controller="Sala" asp-action="Index" class="btn btn-outline-primary">Ir a Salas</a>
+                </div>
+            </div>
+        </div>
+
+        @* Evento *@
+        <div class="col-md-4">
+            <div class="card border-success shadow rounded-2xl h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-success">Eventos</h5>
+                    <p class="card-text text-muted">Gestione los eventos corporativos registrados.</p>
+                    <a asp-controller="Evento" asp-action="Index" class="btn btn-outline-success">Ir a Eventos</a>
+                </div>
+            </div>
+        </div>
+
+        @* Participantes *@
+        <div class="col-md-4">
+            <div class="card border-warning shadow rounded-2xl h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-warning">Participantes</h5>
+                    <p class="card-text text-muted">Administre la lista de participantes de los eventos.</p>
+                    <a asp-controller="Participante" asp-action="Index" class="btn btn-outline-warning">Ir a Participantes</a>
+                </div>
+            </div>
+        </div>
+
+        @* Registrar Participantes *@
+        <div class="col-md-4">
+            <div class="card border-danger shadow rounded-2xl h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-danger">Registrar Participante</h5>
+                    <p class="card-text text-muted">Registre nuevos participantes en los eventos.</p>
+                    <a asp-controller="RegistrarParticipante" asp-action="Registrar" class="btn btn-outline-danger">Registrar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}

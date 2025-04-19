@@ -61,8 +61,15 @@ namespace GestorEvento.Web.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    return RedirectToAction("Disponibles", "Sala", new { mensaje = "Evento creado correctamente." });
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var result = JsonConvert.DeserializeObject<dynamic>(responseData);
+
+                    int nuevoEventoId = result.id;
+
+                    
+                    return RedirectToAction("Details", new { id = nuevoEventoId });
                 }
+
                 else
                 {
                     ModelState.AddModelError(string.Empty, "Error al crear el evento.");
@@ -149,6 +156,8 @@ namespace GestorEvento.Web.Controllers
                 return RedirectToAction("Index");
             }
         }
+
+       
 
     }
 }

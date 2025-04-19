@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
-using System.Text;
-using Newtonsoft.Json;
+﻿using GestorEvento.Api.Servicios;
+using GestorEvento.Application.DTOs;
 using GestorEvento.Application.Interfaces;
-using GestorEvento.Api.Servicios;
+using GestorEvento.Application.Services;
 using GestorEvento.Web.Models;
-using GestorEvento.Application.DTOs; // Asegúrate de tener la referencia a Newtonsoft.Json
+using Microsoft.AspNetCore.Mvc;
 
 namespace GestorEvento.Web.Controllers
 {
@@ -13,15 +11,18 @@ namespace GestorEvento.Web.Controllers
     {
         private readonly IRegistrarParticipanteService _registrarParticipanteService;
         private readonly IServicioEmail _servicioEmail;
-        private readonly HttpClient _httpClient;
+        
+
+       
+
         public RegistrarParticipanteController(
             IRegistrarParticipanteService registrarParticipanteService,
-            IServicioEmail servicioEmail,
-            HttpClient httpClient)
+            IServicioEmail servicioEmail)
+
         {
             _registrarParticipanteService = registrarParticipanteService;
             _servicioEmail = servicioEmail;
-            _httpClient = httpClient;
+          
         }
 
         [HttpGet]
@@ -35,6 +36,7 @@ namespace GestorEvento.Web.Controllers
             return View(viewModel);
         }
 
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Registrar(RegistrarParticipanteViewModel model)
@@ -44,7 +46,6 @@ namespace GestorEvento.Web.Controllers
 
             try
             {
-                // Aquí construyes el DTO para enviar a la API
                 var dto = new RegistrarParticipanteDTO
                 {
                     Nombre = model.Nombre,
@@ -52,29 +53,29 @@ namespace GestorEvento.Web.Controllers
                     EventoId = model.EventoId
                 };
 
-                // Serializa el DTO a JSON
-                var jsonContent = JsonConvert.SerializeObject(dto);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var idParticipante = await _registrarParticipanteService.RegistrarParticipanteAsync(dto);
 
-                // Enviar solicitud POST a la API para registrar al participante
-                var response = await _httpClient.PostAsync("http://api_url/registrar", content);
+                await _servicioEmail.EnviarEmail(
+                    model.Correo,
+                    "Confirmación de Registro al Evento",
+                    $"Hola {model.Nombre},\n\nTe has registrado exitosamente en el evento con ID {model.EventoId}.\n\n¡Gracias por participar!"
+                );
 
-                if (response.IsSuccessStatusCode)
-                {
-                    TempData["SuccessMessage"] = "Te has registrado exitosamente";
-                    return RedirectToAction("Disponibles", "Sala");
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = "Hubo un error al registrar el participante.";
-                    return View(model);
-                }
+                TempData["SuccessMessage"] = "Te has registrado exitosamente";
+                return RedirectToAction("Disponibles", "Sala");
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                ModelState.AddModelError(string.Empty, "Ocurrió un error: " + ex.Message);
-                return View(model);
+                ModelState.AddModelError(string.Empty, ex.Message);
             }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ocurrió un error al registrar al participante.");
+            }
+
+
+
+            return RedirectToAction("Disponibles", "Sala");
         }
     }
 }

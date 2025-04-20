@@ -25,9 +25,7 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                       
                         @{
                             var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UsuarioRol");
                         }
@@ -48,10 +46,7 @@
                                     <a class="nav-link text-dark" asp-controller="RegistrarParticipante" asp-action="Registrar">Registrar Participantes</a>
                                 </li>
                             }
-                            
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Usuario" asp-action="Profile">Mi Perfil</a>
-                            </li>
+                                                     
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Sala" asp-action="Disponibles">Salas Diponibles</a>
                             </li>

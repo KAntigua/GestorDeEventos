@@ -49,7 +49,7 @@ namespace GestorEvento.Web.Controllers
            
             if (usuario.Rol == "Administrador")
             {
-                return RedirectToAction("Index", "Sala"); 
+                return RedirectToAction("Index", "Home"); 
             }
             else
             {

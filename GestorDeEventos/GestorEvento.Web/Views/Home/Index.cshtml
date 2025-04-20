@@ -4,8 +4,15 @@
     var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UsuarioRol");
 }
 
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <h2 class="text-primary">Bienvenido a NovaEventos</h2>
+      
+    </div>
+
 @if (userRole == "Administrador")
 {
+
     <div class="row g-4 mt-4">
         @* Sala *@
         <div class="col-md-4">
